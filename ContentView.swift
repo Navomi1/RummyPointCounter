@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var showingRoundHistory = false
     @State private var showingSettings = false
     @State private var editingPlayer: Player? = nil
+    @State private var showingClearAlert = false
     
     var body: some View {
         NavigationView {
@@ -99,7 +100,7 @@ struct ContentView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Rummy Points")
+            .navigationTitle("Point Totals")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: { showingSettings = true }) {
@@ -108,10 +109,25 @@ struct ContentView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddPlayer = true }) {
-                        Image(systemName: "person.badge.plus")
+                    HStack(spacing: 16) {
+                        Button(action: { showingClearAlert = true }) {
+                            Image(systemName: "trash.fill")
+                        }
+                        .disabled(gameManager.players.isEmpty && gameManager.rounds.isEmpty)
+                        
+                        Button(action: { showingAddPlayer = true }) {
+                            Image(systemName: "person.badge.plus")
+                        }
                     }
                 }
+            }
+            .alert("Clear All Data?", isPresented: $showingClearAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Clear All", role: .destructive) {
+                    clearAllData()
+                }
+            } message: {
+                Text("This will delete all players and rounds. This action cannot be undone.")
             }
             .sheet(isPresented: $showingAddPlayer) {
                 AddPlayerView(gameManager: gameManager)
@@ -136,6 +152,11 @@ struct ContentView: View {
             let player = gameManager.players[index]
             gameManager.deletePlayer(player)
         }
+    }
+    
+    private func clearAllData() {
+        gameManager.players.removeAll()
+        gameManager.rounds.removeAll()
     }
 }
 
